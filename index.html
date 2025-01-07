@@ -187,7 +187,19 @@
 
     function renderGrid() {
       gridContainer.innerHTML = "";
-      renderSingleGrid(currentView, currentView.charAt(0).toUpperCase(), currentView === "north");
+      if (currentView === "all") {
+        renderSingleGrid("north", "N", true);
+        const allContainer = document.createElement("div");
+        allContainer.style.display = "flex";
+        allContainer.style.flexDirection = "column";
+        renderSingleGrid("east", "E", false, allContainer);
+        renderSingleGrid("center", "C", false, allContainer);
+        renderSingleGrid("west", "W", false, allContainer);
+        renderSingleGrid("kallaroo", "K", false, allContainer);
+        gridContainer.appendChild(allContainer);
+      } else {
+        renderSingleGrid(currentView, currentView.charAt(0).toUpperCase(), currentView === "north");
+      }
     }
 
     function renderSingleGrid(view, prefix, vertical, container = gridContainer) {
@@ -198,13 +210,13 @@
       const limit = view === "north" ? 6 : view === "kallaroo" ? 10 : 16;
 
       for (let index = 0; index < limit; index++) {
-        const color = colors[index] || "white";
+        const color = colors[index] || "white"; // Default to white for missing squares
         const square = document.createElement("div");
         square.className = `square active ${["green", "blue"].includes(color) ? "dark" : ""}`;
         square.style.backgroundColor = color;
         square.dataset.index = index;
         square.dataset.view = view;
-        square.innerText = `${prefix}${index + 1}`;
+        square.innerText = `${prefix}${vertical ? index + 1 : limit - index}`;
         square.onclick = () => selectSquare(index, view, color);
         grid.appendChild(square);
       }
@@ -214,7 +226,7 @@
 
     function selectSquare(index, view, color) {
       selectedSquare = { index, view, color };
-      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${index + 1}</p>
+      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${view === "north" ? index + 1 : 16 - index}</p>
                            <p>Label: ${labelMapping[color]}</p>`;
     }
 
@@ -235,7 +247,7 @@
 
       views[view][index] = selectedColor;
       renderGrid();
-      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${index + 1}</p>
+      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${view === "north" ? index + 1 : 16 - index}</p>
                            <p>Label changed from: ${oldLabel} to: ${newLabel}</p>`;
     };
   </script>
