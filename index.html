@@ -28,9 +28,12 @@
     .grid {
       display: flex;
       gap: 2px;
+      align-items: center;
     }
-    .grid.vertical {
-      flex-direction: column;
+    .separator {
+      width: 40px; /* Double white space */
+      height: 40px; /* Match square height */
+      background-color: white;
     }
     .square {
       width: 40px;
@@ -54,10 +57,6 @@
     }
     .square.dark {
       color: white; /* Change text to white for dark backgrounds */
-    }
-    .separator {
-      width: 100%;
-      height: 20px;
     }
     .controls {
       display: flex;
@@ -87,14 +86,12 @@
   </style>
 </head>
 <body>
-  <!-- Password Prompt -->
   <div id="password-prompt">
     <h1>Enter Password</h1>
     <input type="password" id="password-input" placeholder="Enter password">
     <button id="password-submit">Submit</button>
   </div>
 
-  <!-- Main Content -->
   <div id="main-content" style="display: none;" class="main-content">
     <div class="grid-container" id="grid-container"></div>
     <div class="controls">
@@ -107,10 +104,10 @@
         <option value="all">All</option>
       </select>
       <select id="color-picker">
-        <option value="green">WILGOYNE</option>
-        <option value="red">BARLEY</option>
-        <option value="blue">OATS</option>
-        <option value="white">EMPTY</option>
+        <option value="#a8d5ba" style="background-color: #a8d5ba;">WILGOYNE</option>
+        <option value="#f9b4ab" style="background-color: #f9b4ab;">BARLEY</option>
+        <option value="#91a7d0" style="background-color: #91a7d0;">OATS</option>
+        <option value="#ffffff" style="background-color: #ffffff;">EMPTY</option>
       </select>
       <button id="submit-button">Update</button>
       <div class="info-box" id="info-box">
@@ -131,10 +128,10 @@
     };
 
     const labelMapping = {
-      green: "WILGOYNE",
-      red: "BARLEY",
-      blue: "OATS",
-      white: "EMPTY"
+      "#a8d5ba": "WILGOYNE",
+      "#f9b4ab": "BARLEY",
+      "#91a7d0": "OATS",
+      "#ffffff": "EMPTY"
     };
 
     let currentView = "east";
@@ -157,12 +154,11 @@
       try {
         const bytes = CryptoJS.AES.decrypt(encryptedData, key);
         const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-
         if (!decryptedString) throw new Error("Decryption failed: Resulting string is empty.");
         return JSON.parse(decryptedString);
       } catch (error) {
         console.error("Error decrypting data:", error);
-        return Array(16).fill("white");
+        return Array(16).fill("#ffffff");
       }
     }
 
@@ -187,68 +183,48 @@
 
     function renderGrid() {
       gridContainer.innerHTML = "";
-      if (currentView === "all") {
-        renderSingleGrid("north", "N", true);
-        const allContainer = document.createElement("div");
-        allContainer.style.display = "flex";
-        allContainer.style.flexDirection = "column";
-        renderSingleGrid("east", "E", false, allContainer);
-        renderSingleGrid("center", "C", false, allContainer);
-        renderSingleGrid("west", "W", false, allContainer);
-        renderSingleGrid("kallaroo", "K", false, allContainer);
-        gridContainer.appendChild(allContainer);
-      } else {
-        renderSingleGrid(currentView, currentView.charAt(0).toUpperCase(), currentView === "north");
-      }
-    }
+      const colors = views[currentView] || Array(16).fill("#ffffff");
 
-    function renderSingleGrid(view, prefix, vertical, container = gridContainer) {
       const grid = document.createElement("div");
-      grid.className = `grid${vertical ? " vertical" : ""}`;
-      const colors = views[view];
+      grid.className = "grid";
 
-      const limit = view === "north" ? 6 : view === "kallaroo" ? 10 : 16;
+      colors.forEach((color, index) => {
+        if (index === 8) {
+          const separator = document.createElement("div");
+          separator.className = "separator";
+          grid.appendChild(separator);
+        }
 
-      for (let index = 0; index < limit; index++) {
-        const color = colors[index] || "white"; // Default to white for missing squares
         const square = document.createElement("div");
-        square.className = `square active ${["green", "blue"].includes(color) ? "dark" : ""}`;
+        square.className = `square active ${["#91a7d0", "#a8d5ba"].includes(color) ? "dark" : ""}`;
         square.style.backgroundColor = color;
         square.dataset.index = index;
-        square.dataset.view = view;
-        square.innerText = `${prefix}${vertical ? index + 1 : limit - index}`;
-        square.onclick = () => selectSquare(index, view, color);
+        square.onclick = () => selectSquare(index, color);
+        square.innerText = index + 1;
         grid.appendChild(square);
-      }
+      });
 
-      container.appendChild(grid);
+      gridContainer.appendChild(grid);
     }
 
-    function selectSquare(index, view, color) {
-      selectedSquare = { index, view, color };
-      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${view === "north" ? index + 1 : 16 - index}</p>
+    function selectSquare(index, color) {
+      selectedSquare = { index, color };
+      infoBox.innerHTML = `<p>Square ${index + 1}</p>
                            <p>Label: ${labelMapping[color]}</p>`;
     }
-
-    document.getElementById("view-selector").onchange = () => {
-      currentView = document.getElementById("view-selector").value;
-      renderGrid();
-    };
 
     document.getElementById("submit-button").onclick = () => {
       if (!selectedSquare) {
         infoBox.innerHTML = "<p>Please select a square first.</p>";
         return;
       }
-      const { index, view, color } = selectedSquare;
-      const selectedColor = document.getElementById("color-picker").value;
-      const oldLabel = labelMapping[color];
-      const newLabel = labelMapping[selectedColor];
 
-      views[view][index] = selectedColor;
+      const { index, color } = selectedSquare;
+      const newColor = document.getElementById("color-picker").value;
+
+      views[currentView][index] = newColor;
       renderGrid();
-      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${view === "north" ? index + 1 : 16 - index}</p>
-                           <p>Label changed from: ${oldLabel} to: ${newLabel}</p>`;
+      infoBox.innerHTML = `<p>Square ${index + 1} updated.</p>`;
     };
   </script>
 </body>
