@@ -1,0 +1,46 @@
+Encryption
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encrypt Data</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+  <h1>Encrypt Data for East, Center, and West</h1>
+  <button onclick="generateEncryptedData()">Generate Encrypted Data</button>
+  <pre id="output"></pre>
+
+  <script>
+    function encryptData(data, password) {
+      return CryptoJS.AES.encrypt(JSON.stringify(data), password).toString();
+    }
+
+    function generateEncryptedData() {
+      const password = "yourpassword2024";
+      
+      // Example data for east, center, and west
+      const eastData = [“white, "white", "white", "white", "white", "white", "white", "white", "white", "green"]; //10
+      const centerData = ["white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white"];
+      const westData = ["white", "white", "white", "white", "white", "white"];
+
+      // Encrypt the data
+      const encryptedEast = encryptData(eastData, password);
+      const encryptedCenter = encryptData(centerData, password);
+      const encryptedWest = encryptData(westData, password);
+
+      // Display the encrypted data
+      const output = document.getElementById("output");
+      output.textContent = `
+Encrypted Data:
+- East: ${encryptedEast}
+- Center: ${encryptedCenter}
+- West: ${encryptedWest}
+      `;
+      console.log("Encrypted Data:", { east: encryptedEast, center: encryptedCenter, west: encryptedWest });
+    }
+  </script>
+</body>
+</html>
