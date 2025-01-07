@@ -1,46 +1,191 @@
-Encryption
+7 jan
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Encrypt Data</title>
+  <title>Secure Static Site</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px;
+    }
+    .grid-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .grid {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+    .square {
+      width: 19px;
+      height: 19px;
+      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: not-allowed;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .square.active {
+      cursor: pointer;
+      pointer-events: auto;
+      opacity: 1;
+    }
+    .separator {
+      width: 10px;
+      height: 19px;
+      background-color: white;
+    }
+    .controls select, .controls button {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .controls.active select, .controls.active button {
+      pointer-events: auto;
+      opacity: 1;
+    }
+  </style>
 </head>
 <body>
-  <h1>Encrypt Data for East, Center, and West</h1>
-  <button onclick="generateEncryptedData()">Generate Encrypted Data</button>
-  <pre id="output"></pre>
+  <!-- Password Prompt -->
+  <div id="password-prompt">
+    <h1>Enter Password</h1>
+    <input type="password" id="password-input" placeholder="Enter password">
+    <button id="password-submit">Submit</button>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content" style="display: none;">
+    <div class="controls">
+      <select id="view-selector">
+        <option value="east">East</option>
+        <option value="center">Center</option>
+        <option value="west">West</option>
+        <option value="all">All</option>
+      </select>
+      <select id="color-picker">
+        <option value="red">Red</option>
+        <option value="green">Green</option>
+        <option value="blue">Blue</option>
+        <option value="white">White</option>
+      </select>
+      <button id="submit-button">Submit</button>
+    </div>
+    <div class="grid-container" id="grid-container"></div>
+  </div>
 
   <script>
-    function encryptData(data, password) {
-      return CryptoJS.AES.encrypt(JSON.stringify(data), password).toString();
+    const hashedPassword = "c8f255311d7d6c4cc67bdc29e2ea70c9cfd6bab1185e82e57f7d9c6773dfce8c";
+
+    const encryptedViews = {
+      east: "U2FsdGVkX18TBFWBfjEUlpIe/u6NL4WCc1GtzeVNhcARJxcxXO9aasEWQ72uuZ6zBPvTgRdamdYBE4UIWZukAVchvVE/Zox2HaUNc7mxfyhlvwu5hljWpS+KUgFxu5Cwpbd4LPZ+BlQF1mBkpMezMBkWmnsNspce9QuJ5nM5b+/a/TKx+WyREktHujm9bSab",
+      west: "U2FsdGVkX18534LXG92UJNssbngQ6AfbnF64PD5IGnbt6tPw0WBRfc9USSh9AeRbOf6aYexecG8Ph+AGQtRkTIpZdLZsMLFxR71GBYP/wx6wBnmm6bGmJmBZW+Fl94sqh4wYqG1A2kgdIHVJtOU3Wbl3MJQ2zMowIQ0wQ0pPHAPrPonXO7XMhOQCaEyUVRV3",
+      center: "U2FsdGVkX19uZeV/Nk6reJ7IhuFosMCwc+TwoQZiQCngT/KBH4B06gJW6dwDqqZ71zG6vjxYcVw7QNGhTwdGHisfxey9T/NMGuU5tqv31WahB2TDugzRYfGdp0vu+UqbC8uIo/C0jAexRIPiTiaRKFjYccFYWFDWkFOGVbZe1u1yTYtd1TGaxLjbYCq5wT1k"
+    };
+
+    let currentView = "east";
+    let views = {};
+
+    const passwordPrompt = document.getElementById("password-prompt");
+    const mainContent = document.getElementById("main-content");
+    const passwordInput = document.getElementById("password-input");
+    const passwordSubmit = document.getElementById("password-submit");
+    const controls = document.querySelector(".controls");
+    const gridContainer = document.getElementById("grid-container");
+
+    function hashPassword(password) {
+      return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
     }
 
-    function generateEncryptedData() {
-      const password = "yourpassword2024";
-      
-      // Example data for east, center, and west
-      const eastData = [“white, "white", "white", "white", "white", "white", "white", "white", "white", "green"]; //10
-      const centerData = ["white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white", "white"];
-      const westData = ["white", "white", "white", "white", "white", "white"];
+    function decryptData(encryptedData, key) {
+      try {
+        console.log("Decrypting data...");
+        console.log("Encrypted Data:", encryptedData);
+        console.log("Decryption Key:", key);
 
-      // Encrypt the data
-      const encryptedEast = encryptData(eastData, password);
-      const encryptedCenter = encryptData(centerData, password);
-      const encryptedWest = encryptData(westData, password);
+        const bytes = CryptoJS.AES.decrypt(encryptedData, key);
+        const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
 
-      // Display the encrypted data
-      const output = document.getElementById("output");
-      output.textContent = `
-Encrypted Data:
-- East: ${encryptedEast}
-- Center: ${encryptedCenter}
-- West: ${encryptedWest}
-      `;
-      console.log("Encrypted Data:", { east: encryptedEast, center: encryptedCenter, west: encryptedWest });
+        console.log("Decrypted String:", decryptedString);
+
+        if (!decryptedString) throw new Error("Decryption failed: Resulting string is empty.");
+        return JSON.parse(decryptedString);
+      } catch (error) {
+        console.error("Error decrypting data:", error);
+        return Array(16).fill("white");
+      }
     }
+
+    function decryptViews(password) {
+      for (const [key, value] of Object.entries(encryptedViews)) {
+        views[key] = decryptData(value, password);
+        console.log(`Decrypted view "${key}":`, views[key]);
+      }
+    }
+
+    passwordSubmit.onclick = () => {
+      const enteredPassword = passwordInput.value;
+      console.log("Entered Password:", enteredPassword);
+      const enteredPasswordHash = hashPassword(enteredPassword);
+      console.log("Entered Password Hash:", enteredPasswordHash);
+      console.log("Expected Hash:", hashedPassword);
+
+      if (enteredPasswordHash === hashedPassword) {
+        console.log("Password Matched!");
+        passwordPrompt.style.display = "none";
+        mainContent.style.display = "block";
+        controls.classList.add("active");
+        decryptViews(enteredPassword);
+        renderGrid();
+      } else {
+        console.error("Password Mismatch!");
+        alert("Incorrect password. Please try again.");
+      }
+    };
+
+    function renderGrid() {
+      gridContainer.innerHTML = ""; 
+      if (currentView === "all") {
+        renderSingleGrid("east");
+        renderSingleGrid("center");
+        const spacer = document.createElement("div");
+        spacer.style.marginBottom = "20px";
+        gridContainer.appendChild(spacer);
+        renderSingleGrid("west");
+      } else {
+        renderSingleGrid(currentView);
+      }
+    }
+
+    function renderSingleGrid(view) {
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      const colors = views[view];
+
+      colors.forEach((color, index) => {
+        const square = document.createElement("div");
+        square.className = "square";
+        square.style.backgroundColor = color;
+        grid.appendChild(square);
+      });
+      gridContainer.appendChild(grid);
+    }
+
+    document.getElementById("view-selector").onchange = () => {
+      currentView = document.getElementById("view-selector").value;
+      renderGrid();
+    };
   </script>
 </body>
 </html>
