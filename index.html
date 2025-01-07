@@ -3,88 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Static Site</title>
+  <title>Flexible Grid Layout</title>
+  <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 20px;
-    }
-    .main-content {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      align-items: center;
-    }
-    .grid-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .grid {
-      display: flex;
-      gap: 2px;
-    }
-    .grid.vertical {
-      flex-direction: column;
-    }
-    .square {
-      width: 40px;
-      height: 40px;
-      border: 1px solid #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: bold;
-      color: black;
-      background-color: white;
-      cursor: not-allowed;
-      pointer-events: none;
-      opacity: 0.5;
-    }
-    .square.active {
-      cursor: pointer;
-      pointer-events: auto;
-      opacity: 1;
-    }
-    .square.dark {
-      color: white; /* Change text to white for dark backgrounds */
-    }
-    .separator {
-      width: 100%;
-      height: 20px;
-    }
-    .controls {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: center;
-    }
-    .controls select, .controls button {
-      pointer-events: none;
-      opacity: 0.5;
-    }
-    .controls.active select, .controls.active button {
-      pointer-events: auto;
-      opacity: 1;
-    }
-    .info-box {
-      border: 1px solid #ccc;
-      padding: 5px 10px;
-      background-color: white;
-      font-size: 14px;
-      font-weight: bold;
-      color: #333;
-      border-radius: 5px;
-      margin-left: 10px;
-      white-space: nowrap;
-    }
-  </style>
 </head>
 <body>
   <!-- Password Prompt -->
@@ -96,157 +17,23 @@
 
   <!-- Main Content -->
   <div id="main-content" style="display: none;" class="main-content">
-    <div class="grid-container" id="grid-container"></div>
+    <div class="grid-container" id="grid-container">
+      <!-- Placeholder for dynamically generated grids -->
+    </div>
     <div class="controls">
-      <select id="view-selector">
-        <option value="east">East</option>
-        <option value="center">Center</option>
-        <option value="west">West</option>
-        <option value="north">North</option>
-        <option value="all">All</option>
-      </select>
       <select id="color-picker">
         <option value="green">WILGOYNE</option>
         <option value="red">BARLEY</option>
         <option value="blue">OATS</option>
         <option value="white">EMPTY</option>
       </select>
-      <button id="submit-button">Submit</button>
+      <button id="submit-button">Update</button>
       <div class="info-box" id="info-box">
         Click a square to see details.
       </div>
     </div>
   </div>
 
-  <script>
-    const hashedPassword = "c8f255311d7d6c4cc67bdc29e2ea70c9cfd6bab1185e82e57f7d9c6773dfce8c";
-
-    const encryptedViews = {
-      east: "U2FsdGVkX18TBFWBfjEUlpIe/u6NL4WCc1GtzeVNhcARJxcxXO9aasEWQ72uuZ6zBPvTgRdamdYBE4UIWZukAVchvVE/Zox2HaUNc7mxfyhlvwu5hljWpS+KUgFxu5Cwpbd4LPZ+BlQF1mBkpMezMBkWmnsNspce9QuJ5nM5b+/a/TKx+WyREktHujm9bSab",
-      west: "U2FsdGVkX18534LXG92UJNssbngQ6AfbnF64PD5IGnbt6tPw0WBRfc9USSh9AeRbOf6aYexecG8Ph+AGQtRkTIpZdLZsMLFxR71GBYP/wx6wBnmm6bGmJmBZW+Fl94sqh4wYqG1A2kgdIHVJtOU3Wbl3MJQ2zMowIQ0wQ0pPHAPrPonXO7XMhOQCaEyUVRV3",
-      center: "U2FsdGVkX19uZeV/Nk6reJ7IhuFosMCwc+TwoQZiQCngT/KBH4B06gJW6dwDqqZ71zG6vjxYcVw7QNGhTwdGHisfxey9T/NMGuU5tqv31WahB2TDugzRYfGdp0vu+UqbC8uIo/C0jAexRIPiTiaRKFjYccFYWFDWkFOGVbZe1u1yTYtd1TGaxLjbYCq5wT1k",
-      north: "U2FsdGVkX1/1vyP+FrdD4Vln4SF8FK0AB5kGYTCbto8333I1xq71x/EtguJWYbe0HnPGoQsXCOyadss/zI0/+g=="
-    };
-
-    const labelMapping = {
-      green: "WILGOYNE",
-      red: "BARLEY",
-      blue: "OATS",
-      white: "EMPTY"
-    };
-
-    let currentView = "east";
-    let views = {};
-    let selectedSquare = null;
-
-    const passwordPrompt = document.getElementById("password-prompt");
-    const mainContent = document.getElementById("main-content");
-    const passwordInput = document.getElementById("password-input");
-    const passwordSubmit = document.getElementById("password-submit");
-    const controls = document.querySelector(".controls");
-    const gridContainer = document.getElementById("grid-container");
-    const infoBox = document.getElementById("info-box");
-
-    function hashPassword(password) {
-      return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-    }
-
-    function decryptData(encryptedData, key) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(encryptedData, key);
-        const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-
-        if (!decryptedString) throw new Error("Decryption failed: Resulting string is empty.");
-        return JSON.parse(decryptedString);
-      } catch (error) {
-        console.error("Error decrypting data:", error);
-        return Array(16).fill("white");
-      }
-    }
-
-    function decryptViews(password) {
-      for (const [key, value] of Object.entries(encryptedViews)) {
-        views[key] = decryptData(value, password);
-      }
-    }
-
-    passwordSubmit.onclick = () => {
-      const enteredPassword = passwordInput.value;
-      if (hashPassword(enteredPassword) === hashedPassword) {
-        passwordPrompt.style.display = "none";
-        mainContent.style.display = "flex";
-        controls.classList.add("active");
-        decryptViews(enteredPassword);
-        renderGrid();
-      } else {
-        alert("Incorrect password. Please try again.");
-      }
-    };
-
-    function renderGrid() {
-      gridContainer.innerHTML = "";
-      if (currentView === "all") {
-        renderSingleGrid("north", "N", true);
-        const allContainer = document.createElement("div");
-        allContainer.style.display = "flex";
-        allContainer.style.flexDirection = "column";
-        renderSingleGrid("east", "E", false, allContainer);
-        renderSingleGrid("center", "C", false, allContainer);
-        renderSingleGrid("west", "W", false, allContainer);
-        gridContainer.appendChild(allContainer);
-      } else {
-        renderSingleGrid(currentView, currentView.charAt(0).toUpperCase(), currentView === "north");
-      }
-    }
-
-    function renderSingleGrid(view, prefix, vertical, container = gridContainer) {
-      const grid = document.createElement("div");
-      grid.className = `grid${vertical ? " vertical" : ""}`;
-      const colors = views[view];
-
-      const limit = view === "north" ? 6 : 16;
-
-      for (let index = 0; index < limit; index++) {
-        const color = colors[index] || "white"; // Default to white for missing squares
-        const square = document.createElement("div");
-        square.className = `square active ${["green", "blue"].includes(color) ? "dark" : ""}`;
-        square.style.backgroundColor = color;
-        square.dataset.index = index;
-        square.dataset.view = view;
-        square.innerText = `${prefix}${vertical ? index + 1 : 16 - index}`;
-        square.onclick = () => selectSquare(index, view, color);
-        grid.appendChild(square);
-      }
-
-      container.appendChild(grid);
-    }
-
-    function selectSquare(index, view, color) {
-      selectedSquare = { index, view, color };
-      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${view === "north" ? index + 1 : 16 - index}</p>
-                           <p>Label: ${labelMapping[color]}</p>`;
-    }
-
-    document.getElementById("view-selector").onchange = () => {
-      currentView = document.getElementById("view-selector").value;
-      renderGrid();
-    };
-
-    document.getElementById("submit-button").onclick = () => {
-      if (!selectedSquare) {
-        infoBox.innerHTML = "<p>Please select a square first.</p>";
-        return;
-      }
-      const { index, view, color } = selectedSquare;
-      const selectedColor = document.getElementById("color-picker").value;
-      const oldLabel = labelMapping[color];
-      const newLabel = labelMapping[selectedColor];
-
-      views[view][index] = selectedColor;
-      renderGrid();
-      infoBox.innerHTML = `<p>Square: ${view.toUpperCase()}${view === "north" ? index + 1 : 16 - index}</p>
-                           <p>Label changed from: ${oldLabel} to: ${newLabel}</p>`;
-    };
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
